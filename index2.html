@@ -36,7 +36,7 @@
     }
 
     .container {
-      max-width: 1550px;
+      max-width: 1600px;
       margin: 0 auto;
     }
 
@@ -254,7 +254,7 @@
     .legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
       align-items: center;
       font-size: 0.85rem;
     }
@@ -263,11 +263,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      font-size: 0.75rem;
-      padding: 2px 7px;
-      border-radius: 4px;
-      min-width: 24px;
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 5px;
+      min-width: 28px;
+      letter-spacing: 0.5px;
     }
 
     .badge-a {
@@ -285,12 +286,13 @@
     .badge-both {
       background: var(--sec-both-bg);
       color: var(--sec-both-text);
-      border: 1px solid #bfdbfe;
+      border: 1px solid #93c5fd;
+      box-shadow: 0 1px 2px rgba(30, 64, 175, 0.1);
     }
 
     .badge-empty {
       color: #cbd5e1;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
 
     .search-box {
@@ -321,7 +323,7 @@
       background: #f8fafc;
       color: #334155;
       font-weight: 600;
-      padding: 12px 10px;
+      padding: 12px 8px;
       border-bottom: 2px solid var(--border-color);
       border-right: 1px solid var(--border-color);
       white-space: nowrap;
@@ -341,10 +343,10 @@
     }
 
     tbody td {
-      padding: 10px 6px;
+      padding: 10px 4px;
       border-bottom: 1px solid var(--border-color);
       border-right: 1px solid var(--border-color);
-      min-width: 60px;
+      min-width: 62px;
       height: 48px;
     }
 
@@ -440,7 +442,7 @@
   <header>
     <div>
       <h1>HKDSE 歷屆試題完成進度表 (2012 – 2026)</h1>
-      <p>即時自動連接 Google 試算表，自動核對學生班號與中文姓名</p>
+      <p>即時自動連接 Google 試算表，自動合併多次提交紀錄並核對學生姓名</p>
     </div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button type="button" class="btn btn-secondary" onclick="window.print()">🖨️ 列印 / 存為 PDF</button>
@@ -496,7 +498,7 @@
       <span><strong>圖例：</strong></span>
       <span class="badge badge-a">A</span> 已完成 Section A
       <span class="badge badge-b">B</span> 已完成 Section B
-      <span class="badge badge-both">A + B</span> 完成全份 (A+B)
+      <span class="badge badge-both">A+B</span> 完成全份 (多次或合併提交)
       <span class="badge-empty">— 未完成</span>
     </div>
 
@@ -766,7 +768,7 @@
     };
   }
 
-  // 7. Process Records
+  // 7. Process Records (Accumulative & Merging Logic)
   function processCSV(csvText) {
     const rows = parseCSVContent(csvText);
     if (rows.length < 2) {
@@ -799,6 +801,7 @@
       const yearStr = row[colYear] || "";
       const sectionStr = row[colSection] || "";
 
+      // Extract Year (2012 - 2026)
       const yearMatch = yearStr.match(/20\d{2}/);
       if (!yearMatch) continue;
       const year = parseInt(yearMatch[0], 10);
@@ -807,6 +810,7 @@
       const info = resolveStudentInfo(classNo, email);
       const studentKey = `${info.classNo}___${info.zhName}___${info.email}`;
 
+      // Initialize student object and year Set if first seen
       if (!parsedStudentRecords[studentKey]) {
         parsedStudentRecords[studentKey] = {
           info: info,
@@ -815,6 +819,7 @@
         YEARS.forEach(y => parsedStudentRecords[studentKey].years[y] = new Set());
       }
 
+      // Check Section A or B (supports multiple submissions or combined checkbox entries)
       const isSecA = /section\s*a|\bA\b|甲/i.test(sectionStr);
       const isSecB = /section\s*b|\bB\b|乙/i.test(sectionStr);
 
@@ -837,7 +842,7 @@
     document.getElementById("statCompletedSections").textContent = completedSections;
   }
 
-  // 8. Render Table
+  // 8. Render Table with Multi-Entry Merging
   function renderTable() {
     const filter = searchInput.value.toLowerCase().trim();
     tableBody.innerHTML = "";
@@ -884,12 +889,13 @@
           const hasA = sections.has("A");
           const hasB = sections.has("B");
 
+          // Merging logic: When both A and B exist (either submitted separately or jointly)
           if (hasA && hasB) {
-            td.innerHTML = `<span class="badge badge-both" title="${year} 完成 Section A 及 B">A+B</span>`;
+            td.innerHTML = `<span class="badge badge-both" title="${year} 完成 Section A 及 Section B (已完成全份)">A+B</span>`;
           } else if (hasA) {
-            td.innerHTML = `<span class="badge badge-a" title="${year} 完成 Section A">A</span>`;
+            td.innerHTML = `<span class="badge badge-a" title="${year} 僅完成 Section A">A</span>`;
           } else if (hasB) {
-            td.innerHTML = `<span class="badge badge-b" title="${year} 完成 Section B">B</span>`;
+            td.innerHTML = `<span class="badge badge-b" title="${year} 僅完成 Section B">B</span>`;
           }
         } else {
           td.innerHTML = `<span class="badge-empty">—</span>`;
