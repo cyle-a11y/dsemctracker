@@ -36,7 +36,7 @@
     }
 
     .container {
-      max-width: 1500px;
+      max-width: 1550px;
       margin: 0 auto;
     }
 
@@ -68,61 +68,72 @@
       font-size: 0.9rem;
     }
 
-    /* Live Sync Box */
+    /* Locked Connection Bar */
     .sync-card {
       background: #ffffff;
-      padding: 20px;
+      padding: 18px 22px;
       border-radius: 12px;
       border: 1px solid var(--border-color);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       margin-bottom: 20px;
     }
 
-    .sync-card h2 {
-      font-size: 1.1rem;
+    .sync-top-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sync-title {
+      font-size: 1.05rem;
+      font-weight: 700;
       color: #0f172a;
-      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .instructions-box {
-      background: var(--primary-subtle);
-      border-left: 4px solid var(--primary);
-      padding: 12px 16px;
-      border-radius: 6px;
-      font-size: 0.88rem;
-      color: #1e3a8a;
-      margin-bottom: 14px;
-      line-height: 1.6;
+    .locked-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-weight: 600;
+      border: 1px solid #bae6fd;
     }
 
-    .instructions-box ol {
-      margin-left: 20px;
-      margin-top: 4px;
-    }
-
-    .url-bar {
+    .url-display-box {
+      margin-top: 10px;
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
+      align-items: center;
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
     }
 
-    .url-bar input[type="text"] {
+    .url-display-box code {
+      font-family: monospace;
+      color: #475569;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       flex: 1;
-      min-width: 300px;
-      padding: 10px 14px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 0.9rem;
     }
 
     .btn {
       background-color: var(--primary);
       color: white;
       border: none;
-      padding: 9px 16px;
+      padding: 8px 16px;
       font-size: 0.88rem;
       border-radius: 6px;
       cursor: pointer;
@@ -131,6 +142,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
 
     .btn:hover {
@@ -156,9 +168,8 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid #f1f5f9;
+      margin-top: 10px;
+      padding-top: 10px;
       font-size: 0.85rem;
       color: var(--text-muted);
     }
@@ -185,6 +196,11 @@
     .dot.syncing {
       background: #eab308;
       animation: pulse 0.8s infinite alternate;
+    }
+
+    .dot.error {
+      background: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
     }
 
     @keyframes pulse {
@@ -424,48 +440,39 @@
   <header>
     <div>
       <h1>HKDSE 歷屆試題完成進度表 (2012 – 2026)</h1>
-      <p>即時同步 Google Form 答卷記錄，自動核對學生班號與中文姓名</p>
+      <p>即時自動連接 Google 試算表，自動核對學生班號與中文姓名</p>
     </div>
     <div style="display: flex; gap: 8px; align-items: center;">
-      <button type="button" class="btn btn-secondary" id="loadDemoBtn">💡 載入示範數據 (Load Demo)</button>
       <button type="button" class="btn btn-secondary" onclick="window.print()">🖨️ 列印 / 存為 PDF</button>
     </div>
   </header>
 
-  <!-- Live Google Sheets Sync Card -->
+  <!-- Locked Google Sheets Connection Card -->
   <div class="sync-card">
-    <h2>⚡ 即時連接 Google 試算表 (Live Auto-Sync)</h2>
-
-    <div class="instructions-box">
-      <strong>如何獲取即時同步連結 (只需設定一次)：</strong>
-      <ol>
-        <li>打開與 Google Form 連結的 Google 試算表 (Google Sheet)。</li>
-        <li>點擊上方選單：<strong>檔案 (File) &gt; 共用 (Share) &gt; 發布到網路 (Publish to web)</strong>。</li>
-        <li>在連結設定中，將「網頁」改選為 <strong>「逗號分隔值 (.csv)」</strong>。</li>
-        <li>點擊<strong>「發布」</strong>，複製生成的網址並貼在下方輸入框中。</li>
-      </ol>
+    <div class="sync-top-row">
+      <div class="sync-title">
+        <span>⚡ 試算表即時連線 (Live Sync)</span>
+        <span class="locked-badge">🔒 連結已鎖定 (Locked Default)</span>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <label style="cursor: pointer; font-size: 0.85rem; color: #334155;">
+          <input type="checkbox" id="autoRefreshToggle" checked /> 每 30 秒自動刷新
+        </label>
+        <button type="button" id="manualRefreshBtn" class="btn" style="padding: 6px 12px; font-size: 0.82rem;">🔄 立即手動刷新</button>
+      </div>
     </div>
 
-    <div class="url-bar">
-      <input 
-        type="text" 
-        id="sheetUrlInput" 
-        placeholder="請貼上已發布的 Google Sheet CSV 網址 (https://docs.google.com/spreadsheets/d/e/.../pub?output=csv)"
-      />
-      <button type="button" class="btn" id="connectBtn">連接並開始即時同步</button>
+    <div class="url-display-box">
+      <span style="font-weight: 600; color: #334155;">資料來源：</span>
+      <code id="lockedUrlDisplay">https://docs.google.com/spreadsheets/d/e/2PACX-1vRGaEKKtRbv6se6iUKfaERo3NiAxns4cOLDReUQX2e1fc-yy2Bq3Z-KiipFUvSxNbyYKakdBomnoLg5/pub?output=csv</code>
     </div>
 
     <div class="sync-meta">
       <div class="live-status">
-        <span class="dot" id="syncStatusDot"></span>
-        <span id="syncStatusText">狀態：尚未連接</span>
+        <span class="dot syncing" id="syncStatusDot"></span>
+        <span id="syncStatusText">正在連接資料庫...</span>
       </div>
-      <div>
-        <label style="margin-right: 12px; cursor: pointer;">
-          <input type="checkbox" id="autoRefreshToggle" checked /> 每 30 秒自動更新
-        </label>
-        <button type="button" id="manualRefreshBtn" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" disabled>即時刷新</button>
-      </div>
+      <span id="lastUpdatedTime" style="font-size: 0.8rem;"></span>
     </div>
   </div>
 
@@ -508,7 +515,7 @@
       <tbody id="tableBody">
         <tr>
           <td colspan="16" style="padding: 40px; color: var(--text-muted);">
-            請在上方連接 Google 試算表 CSV 連結，或點擊右上角「載入示範數據」立即預覽效果。
+            ⏳ 正在從鎖定的 Google 試算表讀取最新答卷數據...
           </td>
         </tr>
       </tbody>
@@ -536,6 +543,11 @@
 </div>
 
 <script>
+  // ==========================================
+  // 1. LOCKED GOOGLE SHEETS CSV URL
+  // ==========================================
+  const LOCKED_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGaEKKtRbv6se6iUKfaERo3NiAxns4cOLDReUQX2e1fc-yy2Bq3Z-KiipFUvSxNbyYKakdBomnoLg5/pub?output=csv";
+
   // HKDSE Exam Years 2012 to 2026
   const START_YEAR = 2012;
   const END_YEAR = 2026;
@@ -554,23 +566,19 @@
 6A (07), 何梓駿, cyle07@school.edu.hk
 6A (08), 鄧家朗, cyle08@school.edu.hk`;
 
-  // Storage Keys
-  const STORAGE_KEY_URL = "hkdse_tracker_sheet_url";
   const STORAGE_KEY_ROSTER = "hkdse_tracker_roster_data";
 
   // Elements
   const tableHeaderRow = document.getElementById("tableHeaderRow");
   const tableBody = document.getElementById("tableBody");
-  const sheetUrlInput = document.getElementById("sheetUrlInput");
-  const connectBtn = document.getElementById("connectBtn");
   const manualRefreshBtn = document.getElementById("manualRefreshBtn");
   const autoRefreshToggle = document.getElementById("autoRefreshToggle");
   const syncStatusDot = document.getElementById("syncStatusDot");
   const syncStatusText = document.getElementById("syncStatusText");
+  const lastUpdatedTime = document.getElementById("lastUpdatedTime");
   const searchInput = document.getElementById("searchInput");
   const rosterInput = document.getElementById("rosterInput");
   const saveRosterBtn = document.getElementById("saveRosterBtn");
-  const loadDemoBtn = document.getElementById("loadDemoBtn");
   const statsCard = document.getElementById("statsCard");
 
   // State
@@ -580,7 +588,7 @@
   let autoRefreshTimer = null;
   let lastRawCSV = "";
 
-  // 1. Initialize Headers (2012 - 2026)
+  // 2. Initialize Headers (2012 - 2026)
   function initHeaders() {
     YEARS.forEach(year => {
       const th = document.createElement("th");
@@ -590,7 +598,7 @@
   }
   initHeaders();
 
-  // 2. Initialize Roster
+  // 3. Initialize Roster
   function loadRoster() {
     const saved = localStorage.getItem(STORAGE_KEY_ROSTER) || DEFAULT_ROSTER;
     rosterInput.value = saved;
@@ -624,21 +632,9 @@
     alert("學生名冊已成功儲存！");
   });
 
-  // 3. Connect & Sync Handlers
-  connectBtn.addEventListener("click", () => {
-    const url = sheetUrlInput.value.trim();
-    if (!url) {
-      alert("請輸入 Google 試算表發布的 CSV 網址。");
-      return;
-    }
-    localStorage.setItem(STORAGE_KEY_URL, url);
-    fetchLiveData(url);
-    startAutoRefresh();
-  });
-
+  // 4. Live Connection & Auto Refresh
   manualRefreshBtn.addEventListener("click", () => {
-    const url = sheetUrlInput.value.trim();
-    if (url) fetchLiveData(url);
+    fetchLiveData(LOCKED_SHEET_URL);
   });
 
   autoRefreshToggle.addEventListener("change", () => {
@@ -653,9 +649,8 @@
     stopAutoRefresh();
     if (!autoRefreshToggle.checked) return;
     autoRefreshTimer = setInterval(() => {
-      const url = sheetUrlInput.value.trim();
-      if (url) fetchLiveData(url, true);
-    }, 30000); // 30s
+      fetchLiveData(LOCKED_SHEET_URL, true);
+    }, 30000); // 30 seconds
   }
 
   function stopAutoRefresh() {
@@ -665,19 +660,11 @@
     }
   }
 
-  async function fetchLiveData(rawUrl, isSilent = false) {
-    let url = rawUrl;
-    if (url.includes("/edit") || url.includes("/view")) {
-      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      if (match && match[1]) {
-        url = `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv`;
-      }
-    }
-
+  async function fetchLiveData(url, isSilent = false) {
     const separator = url.includes("?") ? "&" : "?";
     const fetchUrl = `${url}${separator}_t=${Date.now()}`;
 
-    setSyncStatus("syncing", "正在同步最新表單提交記錄...");
+    setSyncStatus("syncing", "正在同步最新表單記錄...");
     manualRefreshBtn.disabled = true;
 
     try {
@@ -688,14 +675,15 @@
       processCSV(csvText);
 
       const now = new Date().toLocaleTimeString();
-      setSyncStatus("active", `即時同步中 (上次更新：${now})`);
+      setSyncStatus("active", "已連接 (即時同步中)");
+      lastUpdatedTime.textContent = `最後更新時間：${now}`;
       manualRefreshBtn.disabled = false;
     } catch (err) {
       console.error(err);
-      setSyncStatus("error", "同步失敗，請確認 Google Sheet 已設定「發布到網絡」為 CSV 格式。");
+      setSyncStatus("error", "讀取失敗，請確認網路連線或稍後重試。");
       manualRefreshBtn.disabled = false;
       if (!isSilent) {
-        alert("無法讀取 Google Sheet 數據。請確認該試算表已於「檔案 > 共用 > 發布到網絡」發布為「逗號分隔值 (.csv)」。");
+        alert("無法讀取 Google Sheet 數據，請確認網絡正常或試算表仍然處於「發布到網絡」狀態。");
       }
     }
   }
@@ -704,10 +692,11 @@
     syncStatusDot.className = "dot";
     if (state === "active") syncStatusDot.classList.add("active");
     if (state === "syncing") syncStatusDot.classList.add("syncing");
+    if (state === "error") syncStatusDot.classList.add("error");
     syncStatusText.textContent = message;
   }
 
-  // 4. CSV Parser
+  // 5. CSV Parser
   function parseCSVContent(text) {
     const lines = [];
     let row = [""];
@@ -740,12 +729,12 @@
     return lines;
   }
 
-  // 5. Match Student with Class No. & Chinese Name
+  // 6. Match Student with Class No. & Chinese Name
   function resolveStudentInfo(rawClassNo, rawEmail) {
     const email = (rawEmail || "").trim().toLowerCase();
     const classNoStr = (rawClassNo || "").trim();
 
-    // Strategy 1: Check by Email in Roster
+    // Strategy 1: Match by Email in Roster
     if (email && rosterMapByEmail[email]) {
       return {
         classNo: rosterMapByEmail[email].classNo,
@@ -754,7 +743,7 @@
       };
     }
 
-    // Strategy 2: Check by Class Number in Roster
+    // Strategy 2: Match by Class Number in Roster
     if (classNoStr && rosterMapByClassNo[classNoStr.toLowerCase()]) {
       return {
         classNo: rosterMapByClassNo[classNoStr.toLowerCase()].classNo,
@@ -777,10 +766,13 @@
     };
   }
 
-  // 6. Process Records
+  // 7. Process Records
   function processCSV(csvText) {
     const rows = parseCSVContent(csvText);
-    if (rows.length < 2) return;
+    if (rows.length < 2) {
+      tableBody.innerHTML = `<tr><td colspan="${YEARS.length + 1}" style="padding: 24px; color: var(--text-muted);">試算表中尚無學生提交紀錄。</td></tr>`;
+      return;
+    }
 
     const headers = rows[0].map(h => h.trim().toLowerCase());
 
@@ -845,7 +837,7 @@
     document.getElementById("statCompletedSections").textContent = completedSections;
   }
 
-  // 7. Render Table
+  // 8. Render Table
   function renderTable() {
     const filter = searchInput.value.toLowerCase().trim();
     tableBody.innerHTML = "";
@@ -857,7 +849,7 @@
     });
 
     if (studentKeys.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="${YEARS.length + 1}" style="padding: 24px; color: var(--text-muted);">尚無學生紀錄。</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="${YEARS.length + 1}" style="padding: 24px; color: var(--text-muted);">尚無符合條件的學生紀錄。</td></tr>`;
       return;
     }
 
@@ -914,38 +906,14 @@
     }
   }
 
-  // 8. Search Input Filter
+  // 9. Search Input Filter
   searchInput.addEventListener("input", renderTable);
 
-  // 9. Load Demo Data Button
-  loadDemoBtn.addEventListener("click", () => {
-    const demoCSV = `Timestamp,Email Address,Select your class number,Select the year of the public exam past paper,Which section have you completed?,Select the question numbers that you feel difficult
-2025/02/10 10:00:00,cyle01@school.edu.hk,6A (01),2012,Section A,"Q12, Q15"
-2025/02/10 10:05:00,cyle01@school.edu.hk,6A (01),2012,Section B,"Q28"
-2025/02/10 10:10:00,cyle01@school.edu.hk,6A (01),2013,Section A,"Q8"
-2025/02/10 10:15:00,cyle02@school.edu.hk,6A (02),2012,Section A,"Q10"
-2025/02/10 10:20:00,cyle02@school.edu.hk,6A (02),2014,Section B,"Q31, Q35"
-2025/02/10 10:25:00,cyle03@school.edu.hk,6A (03),2013,Both Section A and B,"Q25"
-2025/02/10 10:30:00,cyle03@school.edu.hk,6A (03),2023,Section A,"Q18"
-2025/02/10 10:35:00,cyle04@school.edu.hk,6A (04),2024,Section A,"Q14"
-2025/02/10 10:40:00,cyle04@school.edu.hk,6A (04),2024,Section B,"Q40"
-2025/02/10 10:45:00,cyle05@school.edu.hk,6A (05),2022,Section A,"Q5"
-2025/02/10 10:50:00,cyle05@school.edu.hk,6A (05),2022,Section B,"Q19"`;
-
-    lastRawCSV = demoCSV;
-    processCSV(demoCSV);
-    setSyncStatus("active", "已載入本機示範數據 (Demo Mode)");
-  });
-
-  // 10. Startup
+  // 10. Startup: Load Roster and Start Live Fetching Immediately
   window.addEventListener("DOMContentLoaded", () => {
     loadRoster();
-    const savedUrl = localStorage.getItem(STORAGE_KEY_URL);
-    if (savedUrl) {
-      sheetUrlInput.value = savedUrl;
-      fetchLiveData(savedUrl);
-      startAutoRefresh();
-    }
+    fetchLiveData(LOCKED_SHEET_URL);
+    startAutoRefresh();
   });
 </script>
 
